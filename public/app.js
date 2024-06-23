@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get your player number
     socket.on('player-number', num => {
       if (num === -1) {
-        infoDisplay.innerHTML = "Sorry, the server is full"
+        infoDisplay.innerHTML = "Nažalost server je zauzet"
       } else {
         playerNum = parseInt(num)
         if(playerNum === 1) currentPlayer = "enemy"
@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Another player has connected or disconnected
     socket.on('player-connection', num => {
-      console.log(`Player number ${num} has connected or disconnected`)
+      console.log(`Igrač broj ${num} se pridružio ili napustio igru`)
       playerConnectedOrDisconnected(num)
     })
 
@@ -121,13 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // On Timeout
     socket.on('timeout', () => {
-      infoDisplay.innerHTML = 'You have reached the 10 minute limit'
+      infoDisplay.innerHTML = 'Dostigli ste vremenski limit od 10 minuta'
     })
 
     // Ready button click
     startButton.addEventListener('click', () => {
       if(allShipsPlaced) playGameMulti(socket)
-      else infoDisplay.innerHTML = "Please place all ships"
+      else infoDisplay.innerHTML = "Postavite sve svoje brodove"
     })
 
     // Setup event listeners for firing
@@ -289,6 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (i === draggedShipLength - 1) directionClass = 'end'
         userSquares[parseInt(this.dataset.id) - selectedShipIndex + i].classList.add('taken', 'horizontal', directionClass, shipClass)
       }
+
     //As long as the index of the ship you are dragging is not in the newNotAllowedVertical array! This means that sometimes if you drag the ship by its
     //index-1 , index-2 and so on, the ship will rebound back to the displayGrid.
     } else if (!isHorizontal && !newNotAllowedVertical.includes(shipLastId)) {
@@ -320,10 +321,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if(enemyReady) {
       if(currentPlayer === 'user') {
-        turnDisplay.innerHTML = 'Your Go'
+        turnDisplay.innerHTML = 'Vaš napad'
       }
       if(currentPlayer === 'enemy') {
-        turnDisplay.innerHTML = "Enemy's Go"
+        turnDisplay.innerHTML = "Protivnikov napad"
       }
     }
   }
@@ -337,14 +338,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function playGameSingle() {
     if (isGameOver) return
     if (currentPlayer === 'user') {
-      turnDisplay.innerHTML = 'Your Go'
+      turnDisplay.innerHTML = 'Vaš napad'
       computerSquares.forEach(square => square.addEventListener('click', function(e) {
         shotFired = square.dataset.id
         revealSquare(square.classList)
       }))
     }
     if (currentPlayer === 'enemy') {
-      turnDisplay.innerHTML = 'Computers Go'
+      turnDisplay.innerHTML = 'Računar napada'
       setTimeout(enemyGo, 1000)
     }
   }
@@ -395,59 +396,59 @@ document.addEventListener('DOMContentLoaded', () => {
       checkForWins()
     } else if (gameMode === 'singlePlayer') enemyGo()
     currentPlayer = 'user'
-    turnDisplay.innerHTML = 'Your Go'
+    turnDisplay.innerHTML = 'Vaš napad'
   }
 
   function checkForWins() {
-    let enemy = 'computer'
-    if(gameMode === 'multiPlayer') enemy = 'enemy'
+    let enemy = 'računar'
+    if(gameMode === 'multiPlayer') enemy = 'protivnik'
     if (destroyerCount === 2) {
-      infoDisplay.innerHTML = `You sunk the ${enemy}'s destroyer`
+      infoDisplay.innerHTML = `potopili ste ${enemy}ov razarač`
       destroyerCount = 10
     }
     if (submarineCount === 3) {
-      infoDisplay.innerHTML = `You sunk the ${enemy}'s submarine`
+      infoDisplay.innerHTML = `potopili ste ${enemy}ovu podmornicu`
       submarineCount = 10
     }
     if (cruiserCount === 3) {
-      infoDisplay.innerHTML = `You sunk the ${enemy}'s cruiser`
+      infoDisplay.innerHTML = `potopili ste ${enemy}ov kruzer`
       cruiserCount = 10
     }
     if (battleshipCount === 4) {
-      infoDisplay.innerHTML = `You sunk the ${enemy}'s battleship`
+      infoDisplay.innerHTML = `potopili ste ${enemy}ov borbeni brod`
       battleshipCount = 10
     }
     if (carrierCount === 5) {
-      infoDisplay.innerHTML = `You sunk the ${enemy}'s carrier`
+      infoDisplay.innerHTML = `potopili ste ${enemy}ov teretni brod`
       carrierCount = 10
     }
     if (cpuDestroyerCount === 2) {
-      infoDisplay.innerHTML = `${enemy} sunk your destroyer`
+      infoDisplay.innerHTML = `${enemy} je potopio vaš razarač`
       cpuDestroyerCount = 10
     }
     if (cpuSubmarineCount === 3) {
-      infoDisplay.innerHTML = `${enemy} sunk your submarine`
+      infoDisplay.innerHTML = `${enemy} je potopio vašu podmornicu`
       cpuSubmarineCount = 10
     }
     if (cpuCruiserCount === 3) {
-      infoDisplay.innerHTML = `${enemy} sunk your cruiser`
+      infoDisplay.innerHTML = `${enemy} je potopio vaš kruzer`
       cpuCruiserCount = 10
     }
     if (cpuBattleshipCount === 4) {
-      infoDisplay.innerHTML = `${enemy} sunk your battleship`
+      infoDisplay.innerHTML = `${enemy} je potopio vaš borbeni brod`
       cpuBattleshipCount = 10
     }
     if (cpuCarrierCount === 5) {
-      infoDisplay.innerHTML = `${enemy} sunk your carrier`
+      infoDisplay.innerHTML = `${enemy} je potopio vaš teretni brod`
       cpuCarrierCount = 10
     }
 
     if ((destroyerCount + submarineCount + cruiserCount + battleshipCount + carrierCount) === 50) {
-      infoDisplay.innerHTML = "YOU WIN"
+      infoDisplay.innerHTML = "VI STE POBEDILI"
       gameOver()
     }
     if ((cpuDestroyerCount + cpuSubmarineCount + cpuCruiserCount + cpuBattleshipCount + cpuCarrierCount) === 50) {
-      infoDisplay.innerHTML = `${enemy.toUpperCase()} WINS`
+      infoDisplay.innerHTML = `${enemy.toUpperCase()} JE POBEDNIK`
       gameOver()
     }
   }
