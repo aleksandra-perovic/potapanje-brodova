@@ -163,11 +163,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Kreiranje starta igre
   function startSinglePlayer() {
-    generate(nizBrodova[0])
-    generate(nizBrodova[1])
-    generate(nizBrodova[2])
-    generate(nizBrodova[3])
-    generate(nizBrodova[4])
+    generisi(nizBrodova[0])
+    generisi(nizBrodova[1])
+    generisi(nizBrodova[2])
+    generisi(nizBrodova[3])
+    generisi(nizBrodova[4])
 
     pokreniButton.addEventListener('click', () => {
       setupButtons.style.display = 'none'
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   //Iscrtavanje brodova na random pozicijama na ekranu
-  function generate(brod) {
+  function generisi(brod) {
     let randomPravac = Math.floor(Math.random() * brod.directions.length)
     let tekuci = brod.directions[randomPravac]
     if (randomPravac === 0) direction = 1
@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!izabran && !naDesnojIvici && !naLevojIvici) tekuci.forEach(index => racunarKvadrati[randomStart + index].classList.add('taken', brod.name))
 
-    else generate(brod)
+    else generisi(brod)
   }
   
 
@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
     
-    } else if (!horizontalno && !noviNedozvoljeniHorizontalno.includes(brodPoslednjiID)) {
+    } else if (!horizontalno && !noviNedozvoljeniVertikalno.includes(brodPoslednjiID)) {
       for (let i=0; i < postavljeniBrodDuzina; i++) {
         let pravacKlasa
         if (i === 0) pravacKlasa = 'start'

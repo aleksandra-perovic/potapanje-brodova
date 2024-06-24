@@ -54,13 +54,13 @@ io.on('connection', socket => {
     konekcije[igracIndeks] = true
   })
 
-  // Check player connections
+  // Proveri konekciju drugog igraca
   socket.on('check-players', () => {
-    const players = []
+    const igraci = []
     for (const i in konekcije) {
-      konekcije[i] === null ? players.push({connected: false, ready: false}) : players.push({connected: true, ready: konekcije[i]})
+      konekcije[i] === null ? igraci.push({povezan: false, spreman: false}) : igraci.push({connected: true, ready: konekcije[i]})
     }
-    socket.emit('check-players', players)
+    socket.emit('check-players', igraci)
   })
 
   // Prijem napada
