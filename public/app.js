@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let enemyReady = false
   let allShipsPlaced = false
   let shotFired = -1
-  //Ships
+  // Brodovi
   const shipArray = [
     {
       name: 'destroyer',
@@ -66,18 +66,18 @@ document.addEventListener('DOMContentLoaded', () => {
   createBoard(userGrid, userSquares)
   createBoard(computerGrid, computerSquares)
 
-  // Select Player Mode
+  // Izbor moda igranja
   if (gameMode === 'singlePlayer') {
     startSinglePlayer()
   } else {
     startMultiPlayer()
   }
 
-  // Multiplayer
+  // Multiplayer mod
   function startMultiPlayer() {
     const socket = io();
 
-    // Get your player number
+    // Dobijanje igrackog broja
     socket.on('player-number', num => {
       if (num === -1) {
         infoDisplay.innerHTML = "Nažalost server je zauzet"
@@ -87,18 +87,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log(playerNum)
 
-        // Get other player status
+        // Zahtev za proveru statusa igraca 
         socket.emit('check-players')
       }
     })
 
-    // Another player has connected or disconnected
+    // Povezivanje drugog igraca ili prekid veze
     socket.on('player-connection', num => {
       console.log(`Igrač broj ${num} se pridružio ili napustio igru`)
       playerConnectedOrDisconnected(num)
     })
 
-    // On enemy ready
+    // Protivnik spreman
     socket.on('enemy-ready', num => {
       enemyReady = true
       playerReady(num)
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     })
 
-    // Check player status
+    // Provera statusa protivnika
     socket.on('check-players', players => {
       players.forEach((p, i) => {
         if(p.connected) playerConnectedOrDisconnected(i)
@@ -119,18 +119,18 @@ document.addEventListener('DOMContentLoaded', () => {
       })
     })
 
-    // On Timeout
+    // Dostizanje vremenskog limita
     socket.on('timeout', () => {
       infoDisplay.innerHTML = 'Dostigli ste vremenski limit od 10 minuta'
     })
 
-    // Ready button click
+    // Klike na dugme spreman za igru
     startButton.addEventListener('click', () => {
       if(allShipsPlaced) playGameMulti(socket)
       else infoDisplay.innerHTML = "Postavite sve svoje brodove"
     })
 
-    // Setup event listeners for firing
+    // Event listeneri za napadanje
     computerSquares.forEach(square => {
       square.addEventListener('click', () => {
         if(currentPlayer === 'user' && ready && enemyReady) {
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
       })
     })
 
-    // On Fire Received
+    // Prijem napada
     socket.on('fire', id => {
       enemyGo(id)
       const square = userSquares[id]
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
       playGameMulti(socket)
     })
 
-    // On Fire Reply Received
+    // Prijem odgovora na napad
     socket.on('fire-reply', classList => {
       revealSquare(classList)
       playGameMulti(socket)
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Single Player
+  // Kreiranje starta igre
   function startSinglePlayer() {
     generate(shipArray[0])
     generate(shipArray[1])
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   }
 
-  //Create Board
+  //Kreiranje platforme za igranje
   function createBoard(grid, squares) {
     for (let i = 0; i < width*width; i++) {
       const square = document.createElement('div')
@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  //Draw the computers ships in random locations
+  //Iscrtavanje brodova na random pozicijama na ekranu
   function generate(ship) {
     let randomDirection = Math.floor(Math.random() * ship.directions.length)
     let current = ship.directions[randomDirection]
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
 
-  //Rotate the ships
+  //Rotiranje brodova
   function rotate() {
     if (isHorizontal) {
       destroyer.classList.toggle('destroyer-container-vertical')
@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   rotateButton.addEventListener('click', rotate)
 
-  //move around user ship
+  //pomeranje korisničkog broda
   ships.forEach(ship => ship.addEventListener('dragstart', dragStart))
   userSquares.forEach(square => square.addEventListener('dragstart', dragStart))
   userSquares.forEach(square => square.addEventListener('dragover', dragOver))
@@ -267,10 +267,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function dragDrop() {
     let shipNameWithLastId = draggedShip.lastChild.id
     let shipClass = shipNameWithLastId.slice(0, -2)
-    // console.log(shipClass)
+    
     let lastShipIndex = parseInt(shipNameWithLastId.substr(-1))
     let shipLastId = lastShipIndex + parseInt(this.dataset.id)
-    // console.log(shipLastId)
+    
     const notAllowedHorizontal = [0,10,20,30,40,50,60,70,80,90,1,11,21,31,41,51,61,71,81,91,2,22,32,42,52,62,72,82,92,3,13,23,33,43,53,63,73,83,93]
     const notAllowedVertical = [99,98,97,96,95,94,93,92,91,90,89,88,87,86,85,84,83,82,81,80,79,78,77,76,75,74,73,72,71,70,69,68,67,66,65,64,63,62,61,60]
     
@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedShipIndex = parseInt(selectedShipNameWithIndex.substr(-1))
 
     shipLastId = shipLastId - selectedShipIndex
-    // console.log(shipLastId)
+  
 
     if (isHorizontal && !newNotAllowedHorizontal.includes(shipLastId)) {
       for (let i=0; i < draggedShipLength; i++) {
@@ -290,8 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
         userSquares[parseInt(this.dataset.id) - selectedShipIndex + i].classList.add('taken', 'horizontal', directionClass, shipClass)
       }
 
-    //As long as the index of the ship you are dragging is not in the newNotAllowedVertical array! This means that sometimes if you drag the ship by its
-    //index-1 , index-2 and so on, the ship will rebound back to the displayGrid.
+    
     } else if (!isHorizontal && !newNotAllowedVertical.includes(shipLastId)) {
       for (let i=0; i < draggedShipLength; i++) {
         let directionClass
@@ -309,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // console.log('dragend')
   }
 
-  // Game Logic for MultiPlayer
+  // Logika multiplayer moda igrice
   function playGameMulti(socket) {
     setupButtons.style.display = 'none'
     if(isGameOver) return
@@ -334,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector(`${player} .ready`).classList.toggle('active')
   }
 
-  // Game Logic for Single Player
+  // Singeplayer logika igrice
   function playGameSingle() {
     if (isGameOver) return
     if (currentPlayer === 'user') {
