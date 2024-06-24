@@ -12,76 +12,76 @@ const io = socketio(server)
 app.use(express.static(path.join(__dirname, "public")))
 
 // Pokretanje servera
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+server.listen(PORT, () => console.log(`Server aktivan na portu: ${PORT}`))
 
 // Lista klijentskih konekcija
-const connections = [null, null]
+const konekcije = [null, null]
 
 io.on('connection', socket => {
 
   // Slanje igrackog broja
-  let playerIndex = -1;
-  for (const i in connections) {
-    if (connections[i] === null) {
-      playerIndex = i
+  let igracIndeks = -1;
+  for (const i in konekcije) {
+    if (konekcije[i] === null) {
+      igracIndeks = i
       break
     }
   }
 
-  socket.emit('player-number', playerIndex)
+  socket.emit('player-number', igracIndeks)
 
-  console.log(`Igrač ${playerIndex} se povezao`)
+  console.log(`Igrač ${igracIndeks} se povezao`)
 
   // Ignorisanje trećeg igrača
-  if (playerIndex === -1) return
+  if (igracIndeks === -1) return
 
-  connections[playerIndex] = false
+  konekcije[igracIndeks] = false
 
   // Slanje poruke o novom klijentu koji se konektovao
-  socket.broadcast.emit('player-connection', playerIndex)
+  socket.broadcast.emit('player-connection', igracIndeks)
 
   // Prekid veze
   socket.on('disconnect', () => {
-    console.log(`Igrac ${playerIndex} se diskonektovao`)
-    connections[playerIndex] = null
+    console.log(`Igrac ${igracIndeks} se diskonektovao`)
+    konekcije[igracIndeks] = null
     // Slanje svim drugim igracima informaciju o prekidu veze
-    socket.broadcast.emit('player-connection', playerIndex)
+    socket.broadcast.emit('player-connection', igracIndeks)
   })
 
   
   socket.on('player-ready', () => {
-    socket.broadcast.emit('enemy-ready', playerIndex)
-    connections[playerIndex] = true
+    socket.broadcast.emit('enemy-ready', igracIndeks)
+    konekcije[igracIndeks] = true
   })
 
   // Check player connections
   socket.on('check-players', () => {
     const players = []
-    for (const i in connections) {
-      connections[i] === null ? players.push({connected: false, ready: false}) : players.push({connected: true, ready: connections[i]})
+    for (const i in konekcije) {
+      konekcije[i] === null ? players.push({connected: false, ready: false}) : players.push({connected: true, ready: konekcije[i]})
     }
     socket.emit('check-players', players)
   })
 
   // Prijem napada
   socket.on('fire', id => {
-    console.log(`Shot fired from ${playerIndex}`, id)
+    console.log(`Shot fired from ${igracIndeks}`, id)
 
     // Slanje pozicije napada drugom klijentu
     socket.broadcast.emit('fire', id)
   })
 
   // Prijem odgovora na napad
-  socket.on('fire-reply', square => {
-    console.log(square)
+  socket.on('fire-reply', kvadrat => {
+    console.log(kvadrat)
 
     // Slanje odgovora drugom igracu
-    socket.broadcast.emit('fire-reply', square)
+    socket.broadcast.emit('fire-reply', kvadrat)
   })
 
 
   setTimeout(() => {
-    connections[playerIndex] = null
+    konekcije[igracIndeks] = null
     socket.emit('timeout')
     socket.disconnect()
   }, 600000) // 10 minute vremenski limit za svakog klijenta

@@ -1,70 +1,70 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const userGrid = document.querySelector('.grid-user')
-  const computerGrid = document.querySelector('.grid-computer')
+  const korisnickiGrid = document.querySelector('.grid-user')
+  const racunarGrid = document.querySelector('.grid-computer')
   const displayGrid = document.querySelector('.grid-display')
-  const ships = document.querySelectorAll('.ship')
-  const destroyer = document.querySelector('.destroyer-container')
-  const submarine = document.querySelector('.submarine-container')
-  const cruiser = document.querySelector('.cruiser-container')
-  const battleship = document.querySelector('.battleship-container')
-  const carrier = document.querySelector('.carrier-container')
-  const startButton = document.querySelector('#start')
-  const rotateButton = document.querySelector('#rotate')
-  const turnDisplay = document.querySelector('#whose-go')
-  const infoDisplay = document.querySelector('#info')
+  const brodovi = document.querySelectorAll('.ship')
+  const razarac = document.querySelector('.destroyer-container')
+  const podmornica = document.querySelector('.submarine-container')
+  const kruzer = document.querySelector('.cruiser-container')
+  const borbeniBrod = document.querySelector('.battleship-container')
+  const teretniBrod = document.querySelector('.carrier-container')
+  const pokreniButton = document.querySelector('#start')
+  const rotirajButton = document.querySelector('#rotate')
+  const prikazRedaNapada = document.querySelector('#whose-go')
+  const infoEkran = document.querySelector('#info')
   const setupButtons = document.getElementById('setup-buttons')
-  const userSquares = []
-  const computerSquares = []
-  let isHorizontal = true
-  let isGameOver = false
-  let currentPlayer = 'user'
-  const width = 10
-  let playerNum = 0
-  let ready = false
-  let enemyReady = false
-  let allShipsPlaced = false
-  let shotFired = -1
+  const korisnickiKvadrati = []
+  const racunarKvadrati = []
+  let horizontalno = true
+  let krajIgre = false
+  let tekuciIgrac = 'user'
+  const sirina = 10
+  let igrackiBroj = 0
+  let spreman = false
+  let protivnikSpreman = false
+  let sviBrodoviNamesteni = false
+  let gadjanje = -1
   // Brodovi
-  const shipArray = [
+  const nizBrodova = [
     {
       name: 'destroyer',
       directions: [
         [0, 1],
-        [0, width]
+        [0, sirina]
       ]
     },
     {
       name: 'submarine',
       directions: [
         [0, 1, 2],
-        [0, width, width*2]
+        [0, sirina, sirina*2]
       ]
     },
     {
       name: 'cruiser',
       directions: [
         [0, 1, 2],
-        [0, width, width*2]
+        [0, sirina, sirina*2]
       ]
     },
     {
       name: 'battleship',
       directions: [
         [0, 1, 2, 3],
-        [0, width, width*2, width*3]
+        [0, sirina, sirina*2, sirina*3]
       ]
     },
     {
       name: 'carrier',
       directions: [
         [0, 1, 2, 3, 4],
-        [0, width, width*2, width*3, width*4]
+        [0, sirina, sirina*2, sirina*3, sirina*4]
       ]
     },
   ]
 
-  createBoard(userGrid, userSquares)
-  createBoard(computerGrid, computerSquares)
+  kreirajPlatformu(korisnickiGrid, korisnickiKvadrati)
+  kreirajPlatformu(racunarGrid, racunarKvadrati)
 
   // Izbor moda igranja
   if (gameMode === 'singlePlayer') {
@@ -80,12 +80,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Dobijanje igrackog broja
     socket.on('player-number', num => {
       if (num === -1) {
-        infoDisplay.innerHTML = "Nažalost server je zauzet"
+        infoEkran.innerHTML = "Nažalost server je zauzet"
       } else {
-        playerNum = parseInt(num)
-        if(playerNum === 1) currentPlayer = "enemy"
+        igrackiBroj = parseInt(num)
+        if(igrackiBroj === 1) tekuciIgrac = "enemy"
 
-        console.log(playerNum)
+        console.log(igrackiBroj)
 
         // Zahtev za proveru statusa igraca 
         socket.emit('check-players')
@@ -95,160 +95,160 @@ document.addEventListener('DOMContentLoaded', () => {
     // Povezivanje drugog igraca ili prekid veze
     socket.on('player-connection', num => {
       console.log(`Igrač broj ${num} se pridružio ili napustio igru`)
-      playerConnectedOrDisconnected(num)
+      igracKonektovanIliDiskonektovan(num)
     })
 
     // Protivnik spreman
     socket.on('enemy-ready', num => {
-      enemyReady = true
-      playerReady(num)
-      if (ready) {
-        playGameMulti(socket)
+      protivnikSpreman = true
+      igracSpreman(num)
+      if (spreman) {
+        igrajMultiPlayer(socket)
         setupButtons.style.display = 'none'
       }
     })
 
     // Provera statusa protivnika
-    socket.on('check-players', players => {
-      players.forEach((p, i) => {
-        if(p.connected) playerConnectedOrDisconnected(i)
+    socket.on('check-players', igraci => {
+      igraci.forEach((p, i) => {
+        if(p.connected) igracKonektovanIliDiskonektovan(i)
         if(p.ready) {
-          playerReady(i)
-          if(i !== playerReady) enemyReady = true
+          igracSpreman(i)
+          if(i !== igracSpreman) protivnikSpreman = true
         }
       })
     })
 
     // Dostizanje vremenskog limita
     socket.on('timeout', () => {
-      infoDisplay.innerHTML = 'Dostigli ste vremenski limit od 10 minuta'
+      infoEkran.innerHTML = 'Dostigli ste vremenski limit od 10 minuta'
     })
 
     // Klike na dugme spreman za igru
-    startButton.addEventListener('click', () => {
-      if(allShipsPlaced) playGameMulti(socket)
-      else infoDisplay.innerHTML = "Postavite sve svoje brodove"
+    pokreniButton.addEventListener('click', () => {
+      if(sviBrodoviNamesteni) igrajMultiPlayer(socket)
+      else infoEkran.innerHTML = "Postavite sve svoje brodove"
     })
 
-    // Event listeneri za napadanje
-    computerSquares.forEach(square => {
-      square.addEventListener('click', () => {
-        if(currentPlayer === 'user' && ready && enemyReady) {
-          shotFired = square.dataset.id
-          socket.emit('fire', shotFired)
+    // Event listener za napadanje
+    racunarKvadrati.forEach(kvadrat => {
+      kvadrat.addEventListener('click', () => {
+        if(tekuciIgrac === 'user' && spreman && protivnikSpreman) {
+          gadjanje = kvadrat.dataset.id
+          socket.emit('fire', gadjanje)
         }
       })
     })
 
     // Prijem napada
     socket.on('fire', id => {
-      enemyGo(id)
-      const square = userSquares[id]
-      socket.emit('fire-reply', square.classList)
-      playGameMulti(socket)
+      protivnikNapada(id)
+      const kvadrat = korisnickiKvadrati[id]
+      socket.emit('fire-reply', kvadrat.classList)
+      igrajMultiPlayer(socket)
     })
 
     // Prijem odgovora na napad
     socket.on('fire-reply', classList => {
-      revealSquare(classList)
-      playGameMulti(socket)
+      otkrijKvadrat(classList)
+      igrajMultiPlayer(socket)
     })
 
-    function playerConnectedOrDisconnected(num) {
-      let player = `.p${parseInt(num) + 1}`
-      document.querySelector(`${player} .connected`).classList.toggle('active')
-      if(parseInt(num) === playerNum) document.querySelector(player).style.fontWeight = 'bold'
+    function igracKonektovanIliDiskonektovan(num) {
+      let igrac = `.p${parseInt(num) + 1}`
+      document.querySelector(`${igrac} .connected`).classList.toggle('active')
+      if(parseInt(num) === igrackiBroj) document.querySelector(igrac).style.fontWeight = 'bold'
     }
   }
 
   // Kreiranje starta igre
   function startSinglePlayer() {
-    generate(shipArray[0])
-    generate(shipArray[1])
-    generate(shipArray[2])
-    generate(shipArray[3])
-    generate(shipArray[4])
+    generate(nizBrodova[0])
+    generate(nizBrodova[1])
+    generate(nizBrodova[2])
+    generate(nizBrodova[3])
+    generate(nizBrodova[4])
 
-    startButton.addEventListener('click', () => {
+    pokreniButton.addEventListener('click', () => {
       setupButtons.style.display = 'none'
-      playGameSingle()
+      igrajSinglePlayer()
     })
   }
 
   //Kreiranje platforme za igranje
-  function createBoard(grid, squares) {
-    for (let i = 0; i < width*width; i++) {
-      const square = document.createElement('div')
-      square.dataset.id = i
-      grid.appendChild(square)
-      squares.push(square)
+  function kreirajPlatformu(grid, kvadrati) {
+    for (let i = 0; i < sirina*sirina; i++) {
+      const kvadrat = document.createElement('div')
+      kvadrat.dataset.id = i
+      grid.appendChild(kvadrat)
+      kvadrati.push(kvadrat)
     }
   }
 
   //Iscrtavanje brodova na random pozicijama na ekranu
-  function generate(ship) {
-    let randomDirection = Math.floor(Math.random() * ship.directions.length)
-    let current = ship.directions[randomDirection]
-    if (randomDirection === 0) direction = 1
-    if (randomDirection === 1) direction = 10
-    let randomStart = Math.abs(Math.floor(Math.random() * computerSquares.length - (ship.directions[0].length * direction)))
+  function generate(brod) {
+    let randomPravac = Math.floor(Math.random() * brod.directions.length)
+    let tekuci = brod.directions[randomPravac]
+    if (randomPravac === 0) direction = 1
+    if (randomPravac === 1) direction = 10
+    let randomStart = Math.abs(Math.floor(Math.random() * racunarKvadrati.length - (brod.directions[0].length * direction)))
 
-    const isTaken = current.some(index => computerSquares[randomStart + index].classList.contains('taken'))
-    const isAtRightEdge = current.some(index => (randomStart + index) % width === width - 1)
-    const isAtLeftEdge = current.some(index => (randomStart + index) % width === 0)
+    const izabran = tekuci.some(index => racunarKvadrati[randomStart + index].classList.contains('taken'))
+    const naDesnojIvici = tekuci.some(index => (randomStart + index) % sirina === sirina - 1)
+    const naLevojIvici = tekuci.some(index => (randomStart + index) % sirina === 0)
 
-    if (!isTaken && !isAtRightEdge && !isAtLeftEdge) current.forEach(index => computerSquares[randomStart + index].classList.add('taken', ship.name))
+    if (!izabran && !naDesnojIvici && !naLevojIvici) tekuci.forEach(index => racunarKvadrati[randomStart + index].classList.add('taken', brod.name))
 
-    else generate(ship)
+    else generate(brod)
   }
   
 
   //Rotiranje brodova
-  function rotate() {
-    if (isHorizontal) {
-      destroyer.classList.toggle('destroyer-container-vertical')
-      submarine.classList.toggle('submarine-container-vertical')
-      cruiser.classList.toggle('cruiser-container-vertical')
-      battleship.classList.toggle('battleship-container-vertical')
-      carrier.classList.toggle('carrier-container-vertical')
-      isHorizontal = false
+  function rotiraj() {
+    if (horizontalno) {
+      razarac.classList.toggle('destroyer-container-vertical')
+      podmornica.classList.toggle('submarine-container-vertical')
+      kruzer.classList.toggle('cruiser-container-vertical')
+      borbeniBrod.classList.toggle('battleship-container-vertical')
+      teretniBrod.classList.toggle('carrier-container-vertical')
+      horizontalno = false
       // console.log(isHorizontal)
       return
     }
-    if (!isHorizontal) {
-      destroyer.classList.toggle('destroyer-container-vertical')
-      submarine.classList.toggle('submarine-container-vertical')
-      cruiser.classList.toggle('cruiser-container-vertical')
-      battleship.classList.toggle('battleship-container-vertical')
-      carrier.classList.toggle('carrier-container-vertical')
-      isHorizontal = true
+    if (!horizontalno) {
+      razarac.classList.toggle('destroyer-container-vertical')
+      podmornica.classList.toggle('submarine-container-vertical')
+      kruzer.classList.toggle('cruiser-container-vertical')
+      borbeniBrod.classList.toggle('battleship-container-vertical')
+      teretniBrod.classList.toggle('carrier-container-vertical')
+      horizontalno = true
       // console.log(isHorizontal)
       return
     }
   }
-  rotateButton.addEventListener('click', rotate)
+  rotirajButton.addEventListener('click', rotiraj)
 
   //pomeranje korisničkog broda
-  ships.forEach(ship => ship.addEventListener('dragstart', dragStart))
-  userSquares.forEach(square => square.addEventListener('dragstart', dragStart))
-  userSquares.forEach(square => square.addEventListener('dragover', dragOver))
-  userSquares.forEach(square => square.addEventListener('dragenter', dragEnter))
-  userSquares.forEach(square => square.addEventListener('dragleave', dragLeave))
-  userSquares.forEach(square => square.addEventListener('drop', dragDrop))
-  userSquares.forEach(square => square.addEventListener('dragend', dragEnd))
+  brodovi.forEach(brod => brod.addEventListener('dragstart', dragStart))
+  korisnickiKvadrati.forEach(kvadrat => kvadrat.addEventListener('dragstart', dragStart))
+  korisnickiKvadrati.forEach(kvadrat => kvadrat.addEventListener('dragover', dragOver))
+  korisnickiKvadrati.forEach(kvadrat => kvadrat.addEventListener('dragenter', dragEnter))
+  korisnickiKvadrati.forEach(kvadrat => kvadrat.addEventListener('dragleave', dragLeave))
+  korisnickiKvadrati.forEach(kvadrat => kvadrat.addEventListener('drop', dragDrop))
+  korisnickiKvadrati.forEach(kvadrat => kvadrat.addEventListener('dragend', dragEnd))
 
-  let selectedShipNameWithIndex
-  let draggedShip
-  let draggedShipLength
+  let izabraniBrodImeSaIndeksom
+  let postavljenBrod
+  let postavljeniBrodDuzina
 
-  ships.forEach(ship => ship.addEventListener('mousedown', (e) => {
-    selectedShipNameWithIndex = e.target.id
+  brodovi.forEach(brod => brod.addEventListener('mousedown', (e) => {
+    izabraniBrodImeSaIndeksom = e.target.id
     // console.log(selectedShipNameWithIndex)
   }))
 
   function dragStart() {
-    draggedShip = this
-    draggedShipLength = this.childNodes.length
+    postavljenBrod = this
+    postavljeniBrodDuzina = this.childNodes.length
     // console.log(draggedShip)
   }
 
@@ -265,43 +265,43 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function dragDrop() {
-    let shipNameWithLastId = draggedShip.lastChild.id
-    let shipClass = shipNameWithLastId.slice(0, -2)
+    let brodImePoslednjiIndeks = postavljenBrod.lastChild.id
+    let brodKlasa = brodImePoslednjiIndeks.slice(0, -2)
     
-    let lastShipIndex = parseInt(shipNameWithLastId.substr(-1))
-    let shipLastId = lastShipIndex + parseInt(this.dataset.id)
+    let poslednjiBrodIndeks = parseInt(brodImePoslednjiIndeks.substr(-1))
+    let brodPoslednjiID = poslednjiBrodIndeks + parseInt(this.dataset.id)
     
-    const notAllowedHorizontal = [0,10,20,30,40,50,60,70,80,90,1,11,21,31,41,51,61,71,81,91,2,22,32,42,52,62,72,82,92,3,13,23,33,43,53,63,73,83,93]
-    const notAllowedVertical = [99,98,97,96,95,94,93,92,91,90,89,88,87,86,85,84,83,82,81,80,79,78,77,76,75,74,73,72,71,70,69,68,67,66,65,64,63,62,61,60]
+    const nedozvoljenoHorizontalno = [0,10,20,30,40,50,60,70,80,90,1,11,21,31,41,51,61,71,81,91,2,22,32,42,52,62,72,82,92,3,13,23,33,43,53,63,73,83,93]
+    const nedozvoljenoVertikalno = [99,98,97,96,95,94,93,92,91,90,89,88,87,86,85,84,83,82,81,80,79,78,77,76,75,74,73,72,71,70,69,68,67,66,65,64,63,62,61,60]
     
-    let newNotAllowedHorizontal = notAllowedHorizontal.splice(0, 10 * lastShipIndex)
-    let newNotAllowedVertical = notAllowedVertical.splice(0, 10 * lastShipIndex)
+    let noviNedozvoljeniHorizontalno = nedozvoljenoHorizontalno.splice(0, 10 * poslednjiBrodIndeks)
+    let noviNedozvoljeniVertikalno = nedozvoljenoVertikalno.splice(0, 10 * poslednjiBrodIndeks)
 
-    selectedShipIndex = parseInt(selectedShipNameWithIndex.substr(-1))
+    selectedShipIndex = parseInt(izabraniBrodImeSaIndeksom.substr(-1))
 
-    shipLastId = shipLastId - selectedShipIndex
+    brodPoslednjiID = brodPoslednjiID - selectedShipIndex
   
 
-    if (isHorizontal && !newNotAllowedHorizontal.includes(shipLastId)) {
-      for (let i=0; i < draggedShipLength; i++) {
-        let directionClass
-        if (i === 0) directionClass = 'start'
-        if (i === draggedShipLength - 1) directionClass = 'end'
-        userSquares[parseInt(this.dataset.id) - selectedShipIndex + i].classList.add('taken', 'horizontal', directionClass, shipClass)
+    if (horizontalno && !noviNedozvoljeniHorizontalno.includes(brodPoslednjiID)) {
+      for (let i=0; i < postavljeniBrodDuzina; i++) {
+        let pravacKlasa
+        if (i === 0) pravacKlasa = 'start'
+        if (i === postavljeniBrodDuzina - 1) pravacKlasa = 'end'
+        korisnickiKvadrati[parseInt(this.dataset.id) - selectedShipIndex + i].classList.add('taken', 'horizontal', pravacKlasa, brodKlasa)
       }
 
     
-    } else if (!isHorizontal && !newNotAllowedVertical.includes(shipLastId)) {
-      for (let i=0; i < draggedShipLength; i++) {
-        let directionClass
-        if (i === 0) directionClass = 'start'
-        if (i === draggedShipLength - 1) directionClass = 'end'
-        userSquares[parseInt(this.dataset.id) - selectedShipIndex + width*i].classList.add('taken', 'vertical', directionClass, shipClass)
+    } else if (!horizontalno && !noviNedozvoljeniHorizontalno.includes(brodPoslednjiID)) {
+      for (let i=0; i < postavljeniBrodDuzina; i++) {
+        let pravacKlasa
+        if (i === 0) pravacKlasa = 'start'
+        if (i === postavljeniBrodDuzina - 1) pravacKlasa = 'end'
+        korisnickiKvadrati[parseInt(this.dataset.id) - selectedShipIndex + sirina*i].classList.add('taken', 'vertical', pravacKlasa, brodKlasa)
       }
     } else return
 
-    displayGrid.removeChild(draggedShip)
-    if(!displayGrid.querySelector('.ship')) allShipsPlaced = true
+    displayGrid.removeChild(postavljenBrod)
+    if(!displayGrid.querySelector('.ship')) sviBrodoviNamesteni = true
   }
 
   function dragEnd() {
@@ -309,151 +309,151 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Logika multiplayer moda igrice
-  function playGameMulti(socket) {
+  function igrajMultiPlayer(socket) {
     setupButtons.style.display = 'none'
-    if(isGameOver) return
-    if(!ready) {
+    if(krajIgre) return
+    if(!spreman) {
       socket.emit('player-ready')
-      ready = true
-      playerReady(playerNum)
+      spreman = true
+      igracSpreman(igrackiBroj)
     }
 
-    if(enemyReady) {
-      if(currentPlayer === 'user') {
-        turnDisplay.innerHTML = 'Vaš napad'
+    if(protivnikSpreman) {
+      if(tekuciIgrac === 'user') {
+        prikazRedaNapada.innerHTML = 'Vaš napad'
       }
-      if(currentPlayer === 'enemy') {
-        turnDisplay.innerHTML = "Protivnikov napad"
+      if(tekuciIgrac === 'enemy') {
+        prikazRedaNapada.innerHTML = "Protivnikov napad"
       }
     }
   }
 
-  function playerReady(num) {
-    let player = `.p${parseInt(num) + 1}`
-    document.querySelector(`${player} .ready`).classList.toggle('active')
+  function igracSpreman(num) {
+    let igrac = `.p${parseInt(num) + 1}`
+    document.querySelector(`${igrac} .ready`).classList.toggle('active')
   }
 
   // Singeplayer logika igrice
-  function playGameSingle() {
-    if (isGameOver) return
-    if (currentPlayer === 'user') {
-      turnDisplay.innerHTML = 'Vaš napad'
-      computerSquares.forEach(square => square.addEventListener('click', function(e) {
-        shotFired = square.dataset.id
-        revealSquare(square.classList)
+  function igrajSinglePlayer() {
+    if (krajIgre) return
+    if (tekuciIgrac === 'user') {
+      prikazRedaNapada.innerHTML = 'Vaš napad'
+      racunarKvadrati.forEach(kvadrat => kvadrat.addEventListener('click', function(e) {
+        gadjanje = kvadrat.dataset.id
+        otkrijKvadrat(kvadrat.classList)
       }))
     }
-    if (currentPlayer === 'enemy') {
-      turnDisplay.innerHTML = 'Računar napada'
-      setTimeout(enemyGo, 1000)
+    if (tekuciIgrac === 'enemy') {
+      prikazRedaNapada.innerHTML = 'Računar napada'
+      setTimeout(protivnikNapada, 1000)
     }
   }
 
-  let destroyerCount = 0
-  let submarineCount = 0
-  let cruiserCount = 0
-  let battleshipCount = 0
-  let carrierCount = 0
+  let razaracBrojac = 0
+  let podmornicaBrojac = 0
+  let kruzerBrojac = 0
+  let borbeniBrodBrojac = 0
+  let teretniBrodBrojac = 0
 
-  function revealSquare(classList) {
-    const enemySquare = computerGrid.querySelector(`div[data-id='${shotFired}']`)
-    const obj = Object.values(classList)
-    if (!enemySquare.classList.contains('boom') && currentPlayer === 'user' && !isGameOver) {
-      if (obj.includes('destroyer')) destroyerCount++
-      if (obj.includes('submarine')) submarineCount++
-      if (obj.includes('cruiser')) cruiserCount++
-      if (obj.includes('battleship')) battleshipCount++
-      if (obj.includes('carrier')) carrierCount++
+  function otkrijKvadrat(listaKlasa) {
+    const protivnikovKvadrat = racunarGrid.querySelector(`div[data-id='${gadjanje}']`)
+    const obj = Object.values(listaKlasa)
+    if (!protivnikovKvadrat.classList.contains('boom') && tekuciIgrac === 'user' && !krajIgre) {
+      if (obj.includes('destroyer')) razaracBrojac++
+      if (obj.includes('submarine')) podmornicaBrojac++
+      if (obj.includes('cruiser')) kruzerBrojac++
+      if (obj.includes('battleship')) borbeniBrodBrojac++
+      if (obj.includes('carrier')) teretniBrodBrojac++
     }
     if (obj.includes('taken')) {
-      enemySquare.classList.add('boom')
+      protivnikovKvadrat.classList.add('boom')
     } else {
-      enemySquare.classList.add('miss')
+      protivnikovKvadrat.classList.add('miss')
     }
-    checkForWins()
-    currentPlayer = 'enemy'
-    if(gameMode === 'singlePlayer') playGameSingle()
+    proveriPobednika()
+    tekuciIgrac = 'enemy'
+    if(gameMode === 'singlePlayer') igrajSinglePlayer()
   }
 
-  let cpuDestroyerCount = 0
-  let cpuSubmarineCount = 0
-  let cpuCruiserCount = 0
-  let cpuBattleshipCount = 0
-  let cpuCarrierCount = 0
+  let cpuRazaracBrojac = 0
+  let cpuPodmornicaBrojac = 0
+  let cpuKruzerBrojac = 0
+  let cpuBorbeniBrodBrojac = 0
+  let cpuTeretniBrodBrojac = 0
 
 
-  function enemyGo(square) {
-    if (gameMode === 'singlePlayer') square = Math.floor(Math.random() * userSquares.length)
-    if (!userSquares[square].classList.contains('boom')) {
-      const hit = userSquares[square].classList.contains('taken')
-      userSquares[square].classList.add(hit ? 'boom' : 'miss')
-      if (userSquares[square].classList.contains('destroyer')) cpuDestroyerCount++
-      if (userSquares[square].classList.contains('submarine')) cpuSubmarineCount++
-      if (userSquares[square].classList.contains('cruiser')) cpuCruiserCount++
-      if (userSquares[square].classList.contains('battleship')) cpuBattleshipCount++
-      if (userSquares[square].classList.contains('carrier')) cpuCarrierCount++
-      checkForWins()
-    } else if (gameMode === 'singlePlayer') enemyGo()
-    currentPlayer = 'user'
-    turnDisplay.innerHTML = 'Vaš napad'
+  function protivnikNapada(square) {
+    if (gameMode === 'singlePlayer') square = Math.floor(Math.random() * korisnickiKvadrati.length)
+    if (!korisnickiKvadrati[square].classList.contains('boom')) {
+      const hit = korisnickiKvadrati[square].classList.contains('taken')
+      korisnickiKvadrati[square].classList.add(hit ? 'boom' : 'miss')
+      if (korisnickiKvadrati[square].classList.contains('destroyer')) cpuRazaracBrojac++
+      if (korisnickiKvadrati[square].classList.contains('submarine')) cpuPodmornicaBrojac++
+      if (korisnickiKvadrati[square].classList.contains('cruiser')) cpuKruzerBrojac++
+      if (korisnickiKvadrati[square].classList.contains('battleship')) cpuBorbeniBrodBrojac++
+      if (korisnickiKvadrati[square].classList.contains('carrier')) cpuTeretniBrodBrojac++
+      proveriPobednika()
+    } else if (gameMode === 'singlePlayer') protivnikNapada()
+    tekuciIgrac = 'user'
+    prikazRedaNapada.innerHTML = 'Vaš napad'
   }
 
-  function checkForWins() {
-    let enemy = 'računar'
-    if(gameMode === 'multiPlayer') enemy = 'protivnik'
-    if (destroyerCount === 2) {
-      infoDisplay.innerHTML = `potopili ste ${enemy}ov razarač`
-      destroyerCount = 10
+  function proveriPobednika() {
+    let protivnik = 'računar'
+    if(gameMode === 'multiPlayer') protivnik = 'protivnik'
+    if (razaracBrojac === 2) {
+      infoEkran.innerHTML = `potopili ste ${protivnik}ov razarač`
+      razaracBrojac = 10
     }
-    if (submarineCount === 3) {
-      infoDisplay.innerHTML = `potopili ste ${enemy}ovu podmornicu`
-      submarineCount = 10
+    if (podmornicaBrojac === 3) {
+      infoEkran.innerHTML = `potopili ste ${protivnik}ovu podmornicu`
+      podmornicaBrojac = 10
     }
-    if (cruiserCount === 3) {
-      infoDisplay.innerHTML = `potopili ste ${enemy}ov kruzer`
-      cruiserCount = 10
+    if (kruzerBrojac === 3) {
+      infoEkran.innerHTML = `potopili ste ${protivnik}ov kruzer`
+      kruzerBrojac = 10
     }
-    if (battleshipCount === 4) {
-      infoDisplay.innerHTML = `potopili ste ${enemy}ov borbeni brod`
-      battleshipCount = 10
+    if (borbeniBrodBrojac === 4) {
+      infoEkran.innerHTML = `potopili ste ${protivnik}ov borbeni brod`
+      borbeniBrodBrojac = 10
     }
-    if (carrierCount === 5) {
-      infoDisplay.innerHTML = `potopili ste ${enemy}ov teretni brod`
-      carrierCount = 10
+    if (teretniBrodBrojac === 5) {
+      infoEkran.innerHTML = `potopili ste ${protivnik}ov teretni brod`
+      teretniBrodBrojac = 10
     }
-    if (cpuDestroyerCount === 2) {
-      infoDisplay.innerHTML = `${enemy} je potopio vaš razarač`
-      cpuDestroyerCount = 10
+    if (cpuRazaracBrojac === 2) {
+      infoEkran.innerHTML = `${protivnik} je potopio vaš razarač`
+      cpuRazaracBrojac = 10
     }
-    if (cpuSubmarineCount === 3) {
-      infoDisplay.innerHTML = `${enemy} je potopio vašu podmornicu`
-      cpuSubmarineCount = 10
+    if (cpuPodmornicaBrojac === 3) {
+      infoEkran.innerHTML = `${protivnik} je potopio vašu podmornicu`
+      cpuPodmornicaBrojac = 10
     }
-    if (cpuCruiserCount === 3) {
-      infoDisplay.innerHTML = `${enemy} je potopio vaš kruzer`
-      cpuCruiserCount = 10
+    if (cpuKruzerBrojac === 3) {
+      infoEkran.innerHTML = `${protivnik} je potopio vaš kruzer`
+      cpuKruzerBrojac = 10
     }
-    if (cpuBattleshipCount === 4) {
-      infoDisplay.innerHTML = `${enemy} je potopio vaš borbeni brod`
-      cpuBattleshipCount = 10
+    if (cpuBorbeniBrodBrojac === 4) {
+      infoEkran.innerHTML = `${protivnik} je potopio vaš borbeni brod`
+      cpuBorbeniBrodBrojac = 10
     }
-    if (cpuCarrierCount === 5) {
-      infoDisplay.innerHTML = `${enemy} je potopio vaš teretni brod`
-      cpuCarrierCount = 10
+    if (cpuTeretniBrodBrojac === 5) {
+      infoEkran.innerHTML = `${protivnik} je potopio vaš teretni brod`
+      cpuTeretniBrodBrojac = 10
     }
 
-    if ((destroyerCount + submarineCount + cruiserCount + battleshipCount + carrierCount) === 50) {
-      infoDisplay.innerHTML = "VI STE POBEDILI"
+    if ((razaracBrojac + podmornicaBrojac + kruzerBrojac + borbeniBrodBrojac + teretniBrodBrojac) === 50) {
+      infoEkran.innerHTML = "VI STE POBEDILI"
       gameOver()
     }
-    if ((cpuDestroyerCount + cpuSubmarineCount + cpuCruiserCount + cpuBattleshipCount + cpuCarrierCount) === 50) {
-      infoDisplay.innerHTML = `${enemy.toUpperCase()} JE POBEDNIK`
+    if ((cpuRazaracBrojac + cpuPodmornicaBrojac + cpuKruzerBrojac + cpuBorbeniBrodBrojac + cpuTeretniBrodBrojac) === 50) {
+      infoEkran.innerHTML = `${protivnik.toUpperCase()} JE POBEDNIK`
       gameOver()
     }
   }
 
   function gameOver() {
-    isGameOver = true
-    startButton.removeEventListener('click', playGameSingle)
+    krajIgre = true
+    pokreniButton.removeEventListener('click', igrajSinglePlayer)
   }
 })
