@@ -31,7 +31,7 @@ io.on('connection', socket => {
   // Tell the connecting client what player number they are
   socket.emit('player-number', playerIndex)
 
-  console.log(`Player ${playerIndex} has connected`)
+  console.log(`Igrač ${playerIndex} se povezao`)
 
   // Ignore player 3
   if (playerIndex === -1) return
@@ -43,7 +43,7 @@ io.on('connection', socket => {
 
   // Handle Diconnect
   socket.on('disconnect', () => {
-    console.log(`Player ${playerIndex} disconnected`)
+    console.log(`Igrac ${playerIndex} se diskonektovao`)
     connections[playerIndex] = null
     //Tell everyone what player numbe just disconnected
     socket.broadcast.emit('player-connection', playerIndex)
