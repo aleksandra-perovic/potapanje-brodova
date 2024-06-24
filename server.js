@@ -1,3 +1,4 @@
+// Importovanje neophodnih modula i biblioteka
 const express = require('express')
 const path = require('path')
 const http = require('http')
@@ -7,19 +8,18 @@ const app = express()
 const server = http.createServer(app)
 const io = socketio(server)
 
-// Set static folder
+// Postavljanje static foldera
 app.use(express.static(path.join(__dirname, "public")))
 
-// Start server
+// Pokretanje servera
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 
-// Handle a socket connection request from web client
+// Lista klijentskih konekcija
 const connections = [null, null]
 
 io.on('connection', socket => {
-  // console.log('New WS Connection')
 
-  // Find an available player number
+  // Slanje igrackog broja
   let playerIndex = -1;
   for (const i in connections) {
     if (connections[i] === null) {
@@ -28,28 +28,27 @@ io.on('connection', socket => {
     }
   }
 
-  // Tell the connecting client what player number they are
   socket.emit('player-number', playerIndex)
 
   console.log(`Igrač ${playerIndex} se povezao`)
 
-  // Ignore player 3
+  // Ignorisanje trećeg igrača
   if (playerIndex === -1) return
 
   connections[playerIndex] = false
 
-  // Tell eveyone what player number just connected
+  // Slanje poruke o novom klijentu koji se konektovao
   socket.broadcast.emit('player-connection', playerIndex)
 
-  // Handle Diconnect
+  // Prekid veze
   socket.on('disconnect', () => {
     console.log(`Igrac ${playerIndex} se diskonektovao`)
     connections[playerIndex] = null
-    //Tell everyone what player numbe just disconnected
+    // Slanje svim drugim igracima informaciju o prekidu veze
     socket.broadcast.emit('player-connection', playerIndex)
   })
 
-  // On Ready
+  
   socket.on('player-ready', () => {
     socket.broadcast.emit('enemy-ready', playerIndex)
     connections[playerIndex] = true
@@ -64,26 +63,26 @@ io.on('connection', socket => {
     socket.emit('check-players', players)
   })
 
-  // On Fire Received
+  // Prijem napada
   socket.on('fire', id => {
     console.log(`Shot fired from ${playerIndex}`, id)
 
-    // Emit the move to the other player
+    // Slanje pozicije napada drugom klijentu
     socket.broadcast.emit('fire', id)
   })
 
-  // on Fire Reply
+  // Prijem odgovora na napad
   socket.on('fire-reply', square => {
     console.log(square)
 
-    // Forward the reply to the other player
+    // Slanje odgovora drugom igracu
     socket.broadcast.emit('fire-reply', square)
   })
 
-  // Timeout connection
+
   setTimeout(() => {
     connections[playerIndex] = null
     socket.emit('timeout')
     socket.disconnect()
-  }, 600000) // 10 minute limit per player
+  }, 600000) // 10 minute vremenski limit za svakog klijenta
 })
