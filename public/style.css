@@ -23,13 +23,23 @@ body {
 }
 
 .splash-battleship-image {
-  position: absolute;
+  /* position: absolute;
   bottom: 5vh;
   left: 20vw;
   width: 100%;
-  transform: rotateY(180deg);
+  transform: rotateY(180deg); 
   pointer-events: none;
-  opacity: .25;
+  opacity: .25;  */
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* background-image: url('path/to/your/image.jpg'); */
+  background-size: cover; /* Cover the entire page */
+  background-position: center; /* Center the image */
+  z-index: -1; /* Place it behind other content */
 }
 
 .btn {
@@ -280,7 +290,7 @@ body {
   }
 
   100% {
-    background-color: hsl(30, 100%, 50%);
+    background-color: #DEB887;
   }
 }
 
