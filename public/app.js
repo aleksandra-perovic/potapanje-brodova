@@ -124,10 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
       infoEkran.innerHTML = 'Dostigli ste vremenski limit od 10 minuta'
     })
 
-    // Klike na dugme spreman za igru
+    // Klik na dugme spreman za igru
     pokreniButton.addEventListener('click', () => {
       if(sviBrodoviNamesteni) igrajMultiPlayer(socket)
-      else infoEkran.innerHTML = "Postavite sve svoje brodove"
+      else infoEkran.innerHTML = ""
     })
 
     // Event listener za napadanje

@@ -34,7 +34,7 @@ body {
 
 .btn {
   font-size: inherit;
-  background-color: hsl(30, 100%, 50%);
+  background-color:#CED565;
   padding: .5em 1em;
   outline: none;
   border: none;
@@ -45,7 +45,7 @@ body {
 }
 
 .btn:hover, .btn:focus {
-  background-color: hsl(30, 100%, 40%);
+  background-color: #D9DE87;
 }
 
 .splash-btn {
@@ -66,21 +66,21 @@ body {
 .battleship-grid {
   margin: 2vmin;
   display: grid;
-  background-color: hsl(200, 100%, 50%);
+  background-color: #87ADDE;
   grid-template-rows: repeat(10, 4.6vmin);
   grid-template-columns: repeat(10, 4.6vmin);
 }
 
 .grid-computer > .taken,
 .grid-computer > .boom {
-  background-color: hsl(200, 100%, 50%) !important;
+  background-color: #87ADDE !important;
   border-radius: 0 !important;
 }
 
 .taken,
 .ship {
   position: relative;
-  background-color: hsl(30, 100%, 50%);
+  background-color: #DEB887;
 }
 
 .taken.start.vertical,
