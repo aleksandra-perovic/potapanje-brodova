@@ -9,6 +9,9 @@ body {
   box-sizing: border-box;
 }
 
+/* .image-container{
+  background-image: url('/images/depositphotos_2461859-stock-illustration-battle-ship.jpg');
+} */
 .splash-container {
   display: flex;
   flex-direction: column;
