@@ -58,7 +58,7 @@ io.on('connection', socket => {
   socket.on('check-players', () => {
     const igraci = []
     for (const i in konekcije) {
-      konekcije[i] === null ? igraci.push({povezan: false, spreman: false}) : igraci.push({connected: true, ready: konekcije[i]})
+      konekcije[i] === null ? igraci.push({povezan: false, spreman: false}) : igraci.push({povezan: true, spreman: konekcije[i]})
     }
     socket.emit('check-players', igraci)
   })

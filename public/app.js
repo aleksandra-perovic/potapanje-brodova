@@ -111,8 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Provera statusa protivnika
     socket.on('check-players', igraci => {
       igraci.forEach((p, i) => {
-        if(p.connected) igracKonektovanIliDiskonektovan(i)
-        if(p.ready) {
+        if(p.povezan) igracKonektovanIliDiskonektovan(i)
+        if(p.spreman) {
           igracSpreman(i)
           if(i !== igracSpreman) protivnikSpreman = true
         }
