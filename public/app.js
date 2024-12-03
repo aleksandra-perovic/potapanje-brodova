@@ -29,8 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
     {
       name: 'destroyer',
       directions: [
-        [0, 1],
-        [0, sirina]
+        [0, 1], //horizontalno
+        [0, sirina] //vertikalno
       ]
     },
     {
@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Multiplayer mod
+  
   function startMultiPlayer() {
     const socket = io();
 
@@ -382,16 +383,16 @@ document.addEventListener('DOMContentLoaded', () => {
   let cpuTeretniBrodBrojac = 0
 
 
-  function protivnikNapada(square) {
-    if (gameMode === 'singlePlayer') square = Math.floor(Math.random() * korisnickiKvadrati.length)
-    if (!korisnickiKvadrati[square].classList.contains('boom')) {
-      const hit = korisnickiKvadrati[square].classList.contains('taken')
-      korisnickiKvadrati[square].classList.add(hit ? 'boom' : 'miss')
-      if (korisnickiKvadrati[square].classList.contains('destroyer')) cpuRazaracBrojac++
-      if (korisnickiKvadrati[square].classList.contains('submarine')) cpuPodmornicaBrojac++
-      if (korisnickiKvadrati[square].classList.contains('cruiser')) cpuKruzerBrojac++
-      if (korisnickiKvadrati[square].classList.contains('battleship')) cpuBorbeniBrodBrojac++
-      if (korisnickiKvadrati[square].classList.contains('carrier')) cpuTeretniBrodBrojac++
+  function protivnikNapada(kvadrat) {
+    if (gameMode === 'singlePlayer') kvadrat = Math.floor(Math.random() * korisnickiKvadrati.length)
+    if (!korisnickiKvadrati[kvadrat].classList.contains('boom')) {
+      const hit = korisnickiKvadrati[kvadrat].classList.contains('taken')
+      korisnickiKvadrati[kvadrat].classList.add(hit ? 'boom' : 'miss')
+      if (korisnickiKvadrati[kvadrat].classList.contains('destroyer')) cpuRazaracBrojac++
+      if (korisnickiKvadrati[kvadrat].classList.contains('submarine')) cpuPodmornicaBrojac++
+      if (korisnickiKvadrati[kvadrat].classList.contains('cruiser')) cpuKruzerBrojac++
+      if (korisnickiKvadrati[kvadrat].classList.contains('battleship')) cpuBorbeniBrodBrojac++
+      if (korisnickiKvadrati[kvadrat].classList.contains('carrier')) cpuTeretniBrodBrojac++
       proveriPobednika()
     } else if (gameMode === 'singlePlayer') protivnikNapada()
     tekuciIgrac = 'user'

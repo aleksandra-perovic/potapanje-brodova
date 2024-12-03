@@ -2,8 +2,9 @@
 const express = require('express')
 const path = require('path')
 const http = require('http')
-const PORT = process.env.PORT || 3000
+const PORT = 3000
 const socketio = require('socket.io')
+//kreiranje express aplikacije, http servera i instance socket.io servera
 const app = express()
 const server = http.createServer(app)
 const io = socketio(server)
@@ -37,7 +38,7 @@ io.on('connection', socket => {
 
   konekcije[igracIndeks] = false
 
-  // Slanje poruke o novom klijentu koji se konektovao
+  // Slanje poruke o novom klijentu koji se konektovao svim povezanim klijentima
   socket.broadcast.emit('player-connection', igracIndeks)
 
   // Prekid veze
@@ -58,14 +59,15 @@ io.on('connection', socket => {
   socket.on('check-players', () => {
     const igraci = []
     for (const i in konekcije) {
-      konekcije[i] === null ? igraci.push({povezan: false, spreman: false}) : igraci.push({povezan: true, spreman: konekcije[i]})
+      konekcije[i] === null ? igraci.push({povezan: false, spreman: false}) 
+                            : igraci.push({povezan: true, spreman: konekcije[i]})
     }
     socket.emit('check-players', igraci)
   })
 
   // Prijem napada
   socket.on('fire', id => {
-    console.log(`Shot fired from ${igracIndeks}`, id)
+    console.log(`Pogadjanje od igraca ${igracIndeks}`, id)
 
     // Slanje pozicije napada drugom klijentu
     socket.broadcast.emit('fire', id)
@@ -84,5 +86,7 @@ io.on('connection', socket => {
     konekcije[igracIndeks] = null
     socket.emit('timeout')
     socket.disconnect()
-  }, 600000) // 10 minute vremenski limit za svakog klijenta
+  }, 600000) 
+  
+  // 10 minute vremenski limit za svakog klijenta
 })
